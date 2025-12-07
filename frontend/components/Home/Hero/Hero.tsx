@@ -7,19 +7,19 @@ const Hero = () => {
     <div className="relative w-full h-[120vh] sm:h[100vh]">
       {/* overlayer */}
       <div className="absolute top-0 left-0 w-full h-full bg-gray-800 opacity-70"></div>
-      {/* <video
-        src=""
+      <video
+        src="/images/church-video.mp4"
         autoPlay
         muted
         loop
         preload="metadata"
         className="w-full h-full object-cover"
-      /> */}
+      />
       {/* video */}
-      <img
+      {/* <img
         src="/images/church-outside.jpeg"
         className="w-full h-full object-cover"
-      />
+      /> */}
 
       {/* text conent */}
       <div className="absolute z-[100] w-full h-full top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
