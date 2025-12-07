@@ -39,7 +39,9 @@ const Nav = ({ openNav }: Props) => {
           </div>
 
           <h1 className="text-xl md:text-2xl text-white uppercase font-bold">
-            DGD Ministries
+            DIVINE GRACE & DELIVERANCE
+            <br />
+            MINISTRIES
           </h1>
         </div>
 

@@ -18,7 +18,9 @@ const Footer = () => {
             />
           </div>
           <h2 className="text-xl font-bold uppercase tracking-wider">
-            DGD MINISTIRES
+            DIVINE GRACE & DELIVERANCE
+            <br />
+            MINISTRIES
           </h2>
 
           {/* Social Media Icons */}
@@ -49,7 +51,8 @@ const Footer = () => {
           <p className="leading-relaxed">
             73 Signal Hill <br />
             Mahikeng <br />
-            North west South Africa
+            North west <br />
+            South Africa
           </p>
           {/* <p className="mt-2 italic opacity-80">
             (Across the street from Audubon County Memorial Hospital)
