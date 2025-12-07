@@ -8,9 +8,9 @@ const Hero = () => {
       {/* overlayer */}
       <div className="absolute top-0 left-0 w-full h-full bg-gray-800 opacity-70"></div>
       <video
-        src="/images/church.mp4"
+        src="/images/church-video.mp4"
         autoPlay
-        // muted
+        muted
         loop
         preload="metadata"
         className="w-full h-full object-cover"
