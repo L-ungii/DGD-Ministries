@@ -24,7 +24,7 @@ const Footer = () => {
           {/* Social Media Icons */}
           <div className="flex space-x-4 mt-5">
             <a
-              href="https://www.facebook.com"
+              href="https://www.facebook.com/p/Divine-Grace-Deliverance-Ministries-100064815846250/"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 border border-white rounded-full hover:bg-white hover:text-blue-950 transition"
@@ -33,21 +33,12 @@ const Footer = () => {
             </a>
 
             <a
-              href="https://www.youtube.com"
+              href="https://www.youtube.com/channel/UCNqg6SJHLLnfonmRkPySEeQ"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 border border-white rounded-full hover:bg-white hover:text-blue-950 transition"
             >
               <FaYoutube size={18} />
-            </a>
-
-            <a
-              href="https://www.instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 border border-white rounded-full hover:bg-white hover:text-blue-950 transition"
-            >
-              <FaInstagram size={18} />
             </a>
           </div>
         </div>
@@ -56,12 +47,13 @@ const Footer = () => {
         <div className="text-center md:text-left">
           <h3 className="text-lg font-semibold mb-3">LOCATION</h3>
           <p className="leading-relaxed">
-            514 Pacific Ave <br />
-            Audubon, IA 50025
+            73 Signal Hill <br />
+            Mahikeng <br />
+            North west South Africa
           </p>
-          <p className="mt-2 italic opacity-80">
+          {/* <p className="mt-2 italic opacity-80">
             (Across the street from Audubon County Memorial Hospital)
-          </p>
+          </p> */}
         </div>
 
         {/* SERVICES */}
