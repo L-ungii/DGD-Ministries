@@ -57,7 +57,7 @@ export const serviceData = [
     name: "Sunday Sermons",
     description: "If you happened to miss a sermon, no problem at all! You can easily catch up on any past sermons you might have missed. We're here to help you stay connected!",
     buttonName: "WATCH NOW",
-    url: "https://www.youtube.com/@divinegracedeliverancemini3618/videos?view=0&sort=dd&shelf_id=2"
+    url: "/sermon"
   },
   {
     id: 2,

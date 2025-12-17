@@ -13,7 +13,7 @@ export const navLinks = [
   },
   {
     id: 3,
-    url: "https://www.youtube.com/@divinegracedeliverancemini3618/videos",
+    url: "/sermon",
     label: "Sermons",
   },
   {
@@ -23,7 +23,7 @@ export const navLinks = [
   },
   {
     id: 6,
-    url: "#",
+    url: "/contact",
     label: "Contact Us",
   },
 ];
