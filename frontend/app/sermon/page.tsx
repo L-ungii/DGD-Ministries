@@ -2,7 +2,7 @@ import { getChannelUploadsPlaylistId, getPlaylistVideos } from "../lib/youtube";
 import { groupVideosBySection } from "../lib/groupVideos";
 import VideoSection from "../../components/VideoSection";
 
-const CHANNEL_ID = "UCNqg6SJHLLnfonmRkPySEeQ";
+const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
 
 export default async function HomePage() {
   const uploadsPlaylistId = await getChannelUploadsPlaylistId(CHANNEL_ID);
