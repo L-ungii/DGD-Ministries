@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getChannelUploadsPlaylistId, getPlaylistVideos } from "../lib/youtube";
 import { groupVideosBySection } from "../lib/groupVideos";
 import VideoSection from "../../components/VideoSection";
