@@ -13,14 +13,15 @@ const formatDate = (dateObj) => {
 };
 
 const getDay = (dateObj) => new Date(dateObj.dateTime || `${dateObj.date}T00:00:00`).getDate();
-const getWeekDay = (dateObj) =>
-  new Date(dateObj.dateTime || `${dateObj.date}T00:00:00`).getDay(); // 0 = Sunday
 
-export default function Page() {
+export default function Calendar() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
   const [eventsToShow, setEventsToShow] = useState(5);
+
+  // For calendar view
+  const [monthOffset, setMonthOffset] = useState(0);
 
   useEffect(() => {
     loadEvents();
@@ -51,19 +52,27 @@ export default function Page() {
   });
   const visibleEvents = view === "list" ? upcomingEvents.slice(0, eventsToShow) : events;
 
-  // Calendar grid: map events by date
+  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  // --- Calendar calculations ---
+  const calendarDate = new Date();
+  calendarDate.setMonth(calendarDate.getMonth() + monthOffset);
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay(); // weekday of first
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Map events by date for the current month
   const eventsByDate = {};
   events.forEach((e) => {
-    const day = getDay(e.start);
-    if (!eventsByDate[day]) eventsByDate[day] = [];
-    eventsByDate[day].push(e);
+    const date = new Date(e.start.dateTime || e.start.date);
+    if (date.getFullYear() === year && date.getMonth() === month) {
+      const day = date.getDate();
+      if (!eventsByDate[day]) eventsByDate[day] = [];
+      eventsByDate[day].push(e);
+    }
   });
-
-  // Days in month
-  const today = new Date();
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
     <div className="bg-slate-50 dark:bg-slate-700 p-4 md:p-6 lg:p-8 min-h-screen text-slate-600 dark:text-slate-100">
@@ -105,34 +114,35 @@ export default function Page() {
         ) : view === "list" ? (
           <>
             <section className="grid gap-4 md:gap-6 lg:gap-8 items-start grid-cols-1 md:grid-cols-cards">
-              {visibleEvents.map((e) => (
-                <article
-                  key={e.id}
-                  className="bg-white dark:bg-slate-800 shadow-xl shadow-slate-200 dark:shadow-slate-800 rounded-lg overflow-hidden"
-                >
-                  {/* Header with date */}
-                  <div className="p-3 shadow bg-blue-950 text-indigo-50 uppercase grid place-items-center rounded-t-lg">
-                    <div className="text-sm">
-                      {new Date(e.start?.dateTime || e.start?.date).toLocaleString("default", {
-                        month: "short",
-                      })}
-                    </div>
-                    <div className="text-3xl font-bold">
-                      {new Date(e.start?.dateTime || e.start?.date).getDate()}
-                    </div>
-                  </div>
+              {visibleEvents.map((e) => {
+                const dateObj = new Date(e.start?.dateTime || e.start?.date);
+                const weekday = dateObj.toLocaleDateString("default", { weekday: "short" });
+                const month = dateObj.toLocaleDateString("default", { month: "short" });
+                const day = dateObj.getDate();
 
-                  {/* Event details */}
-                  <div className="p-4 md:p-6 lg:p-8 grid gap-2">
-                    <h2 className="font-bold text-2xl">{e.name}</h2>
-                    {e.location && <p className="text-slate-400 text-sm">📍 {e.location}</p>}
-                    {e.description && <p className="text-slate-400">📝 {e.description}</p>}
-                    <p className="text-slate-400 text-sm">
-                      ⏰ {formatDate(e.start)} - {formatDate(e.end)}
-                    </p>
-                  </div>
-                </article>
-              ))}
+                return (
+                  <article
+                    key={e.id}
+                    className="bg-white dark:bg-slate-800 shadow-xl shadow-slate-200 dark:shadow-slate-800 rounded-lg overflow-hidden"
+                  >
+                    {/* Header with date */}
+                    <div className="p-3 shadow bg-blue-950 text-indigo-50 uppercase grid place-items-center rounded-t-lg">
+                      <div className="text-sm">{`${weekday}, ${month}`}</div>
+                      <div className="text-3xl font-bold">{day}</div>
+                    </div>
+
+                    {/* Event details */}
+                    <div className="p-4 md:p-6 lg:p-8 grid gap-2">
+                      <h2 className="font-bold text-2xl">{e.name}</h2>
+                      {e.location && <p className="text-slate-400 text-sm">📍 {e.location}</p>}
+                      {e.description && <p className="text-slate-400">📝 {e.description}</p>}
+                      <p className="text-slate-400 text-sm">
+                        ⏰ {formatDate(e.start)} - {formatDate(e.end)}
+                      </p>
+                    </div>
+                  </article>
+                );
+              })}
             </section>
 
             {eventsToShow < upcomingEvents.length && (
@@ -147,40 +157,65 @@ export default function Page() {
             )}
           </>
         ) : (
-          // Calendar view: proper 7-column grid with weekdays header
-          <section className="grid grid-cols-7 gap-1">
-            {/* Weekday headers */}
-            {weekDays.map((wd) => (
-              <div
-                key={wd}
-                className="font-bold text-center p-2 bg-blue-950 text-white rounded-t-md"
+          // Calendar view
+          <>
+            {/* Month navigation */}
+            <div className="flex justify-between mb-2 items-center">
+              <button
+                onClick={() => setMonthOffset(monthOffset - 1)}
+                className="px-4 py-1 bg-blue-950 text-white rounded"
               >
-                {wd}
-              </div>
-            ))}
+                Prev
+              </button>
+              <h2 className="text-xl font-bold">
+                {calendarDate.toLocaleDateString("default", { month: "long", year: "numeric" })}
+              </h2>
+              <button
+                onClick={() => setMonthOffset(monthOffset + 1)}
+                className="px-4 py-1 bg-blue-950 text-white rounded"
+              >
+                Next
+              </button>
+            </div>
 
-            {/* Days */}
-            {Array.from({ length: daysInMonth }, (_, i) => {
-              const day = i + 1;
-              const dayEvents = eventsByDate[day] || [];
-              return (
+            <section className="grid grid-cols-7 gap-1">
+              {weekDays.map((wd) => (
                 <div
-                  key={day}
-                  className="border min-h-[80px] p-1 bg-white dark:bg-slate-800 flex flex-col gap-1"
+                  key={wd}
+                  className="font-bold text-center p-2 bg-blue-950 text-white rounded-t-md"
                 >
-                  <div className="font-bold">{day}</div>
-                  {dayEvents.map((e) => (
-                    <div
-                      key={e.id}
-                      className="text-xs md:text-sm p-1 bg-blue-950 text-white rounded"
-                    >
-                      {e.name}
-                    </div>
-                  ))}
+                  {wd}
                 </div>
-              );
-            })}
-          </section>
+              ))}
+
+              {/* Empty cells for first day */}
+              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                <div key={`empty-${i}`} className="border min-h-[80px] p-1 bg-white dark:bg-slate-800" />
+              ))}
+
+              {/* Days */}
+              {Array.from({ length: daysInMonth }, (_, i) => {
+                const day = i + 1;
+                const dayEvents = eventsByDate[day] || [];
+                return (
+                  <div
+                    key={day}
+                    className="border min-h-[80px] p-1 bg-white dark:bg-slate-800 flex flex-col gap-1"
+                  >
+                    <div className="font-bold">{day}</div>
+                    {dayEvents.map((e) => (
+                      <div
+                        key={e.id}
+                        className="text-xs md:text-sm p-1 bg-blue-950 text-white rounded"
+                      >
+                        {e.name}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </section>
+          </>
         )}
       </main>
     </div>
