@@ -25,9 +25,13 @@ const VideoCard: React.FC<VideoProps> = ({ video }) => {
         </div>
       ) : (
         <button onClick={() => setPlay(true)} className="relative w-full">
+          {/* YouTube thumbnails are remote and unoptimised on purpose —
+              adding them to next/image would need a remotePatterns entry. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={video.thumbnail}
             alt={video.title}
+            loading="lazy"
             className="w-full h-48 object-cover"
           />
           <span className="absolute inset-0 flex items-center justify-center text-white text-5xl">

@@ -1,4 +1,6 @@
-export function groupVideosBySection(videos: any[] = []) {
+import type { Video } from "@/lib/video";
+
+export function groupVideosBySection(videos: Video[] = []) {
   const latest = videos.slice(0, 6) || [];
   const live =
     videos.filter((v) => v.title?.toLowerCase().includes("live")) || [];

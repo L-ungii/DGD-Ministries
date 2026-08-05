@@ -1,9 +1,11 @@
 import VideoCard from "./VideoCard";
 import Link from "next/link";
 
+import type { Video } from "@/lib/video";
+
 interface Props {
   title: string;
-  videos?: any[];
+  videos?: Video[];
   viewAllLink?: string;
 }
 

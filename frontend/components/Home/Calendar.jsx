@@ -1,27 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Reveal from "@/components/Reveal";
+import { HiOutlineListBullet, HiOutlineCalendarDays } from "react-icons/hi2";
 
-const formatDate = (dateObj) => {
+const startOf = (e) => new Date(e.start.dateTime || `${e.start.date}T00:00:00`);
+
+const formatTime = (dateObj) => {
   if (!dateObj) return "";
-  const date = new Date(dateObj.dateTime || `${dateObj.date}T00:00:00`);
-  const hour = date.getHours();
-  const minute = date.getMinutes().toString().padStart(2, "0");
-  const isAM = hour < 12;
-  const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
-  return `${formattedHour}:${minute}${isAM ? " AM" : " PM"}`;
+  if (!dateObj.dateTime) return "All day";
+  const date = new Date(dateObj.dateTime);
+  return date.toLocaleTimeString("default", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 };
-
-const getDay = (dateObj) => new Date(dateObj.dateTime || `${dateObj.date}T00:00:00`).getDate();
 
 export default function Calendar() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list");
-  const [eventsToShow, setEventsToShow] = useState(5);
-
-  // For calendar view
+  const [eventsToShow, setEventsToShow] = useState(6);
   const [monthOffset, setMonthOffset] = useState(0);
+  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
     loadEvents();
@@ -30,13 +31,9 @@ export default function Calendar() {
   async function loadEvents() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/calendar?maxResults=50`);
+      const res = await fetch("/api/calendar?maxResults=50");
       const data = await res.json();
-      data.sort(
-        (a, b) =>
-          new Date(a.start.dateTime || a.start.date) - new Date(b.start.dateTime || b.start.date)
-      );
-      setEvents(data);
+      setEvents(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error(e);
       setEvents([]);
@@ -46,178 +43,311 @@ export default function Calendar() {
   }
 
   const now = new Date();
-  const upcomingEvents = events.filter((e) => {
-    const start = new Date(e.start.dateTime || e.start.date);
-    return start >= now;
-  });
-  const visibleEvents = view === "list" ? upcomingEvents.slice(0, eventsToShow) : events;
+  const upcomingEvents = events.filter((e) => startOf(e) >= now);
+  const visibleEvents = upcomingEvents.slice(0, eventsToShow);
 
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // --- Calendar calculations ---
+  // --- Calendar grid calculations ---
   const calendarDate = new Date();
+  calendarDate.setDate(1);
   calendarDate.setMonth(calendarDate.getMonth() + monthOffset);
   const year = calendarDate.getFullYear();
   const month = calendarDate.getMonth();
 
-  const firstDayOfMonth = new Date(year, month, 1).getDay(); // weekday of first
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // Map events by date for the current month
   const eventsByDate = {};
   events.forEach((e) => {
-    const date = new Date(e.start.dateTime || e.start.date);
+    const date = startOf(e);
     if (date.getFullYear() === year && date.getMonth() === month) {
       const day = date.getDate();
-      if (!eventsByDate[day]) eventsByDate[day] = [];
-      eventsByDate[day].push(e);
+      (eventsByDate[day] ||= []).push(e);
     }
   });
 
+  const isToday = (day) =>
+    now.getFullYear() === year &&
+    now.getMonth() === month &&
+    now.getDate() === day;
+
   return (
-    <div className="bg-slate-50 dark:bg-slate-700 p-4 md:p-6 lg:p-8 min-h-screen text-slate-600 dark:text-slate-100">
-      <header className="text-center grid p-4 place-items-center gap-4">
-        <h1 className="text-3xl sm:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br pb-4 md:pb-6 from-blue-500 to-violet-700 dark:from-blue-400">
-          Events
-        </h1>
+    <section id="events" className="bg-gray-100 py-20 px-4">
+      <div className="max-w-6xl mx-auto">
+        <Reveal>
+          <header className="text-center mb-10">
+            <p className="text-blue-900 font-semibold tracking-[0.3em] uppercase text-xs mb-3">
+              What&apos;s coming up
+            </p>
+            <h2 className="text-3xl sm:text-5xl font-bold text-blue-950">
+              Church Events
+            </h2>
+            <div className="w-20 h-1 bg-yellow-300 mx-auto mt-5 rounded-full" />
 
-        {/* View Toggle */}
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={() => setView("list")}
-            className={`px-4 py-2 rounded-md font-bold ${
-              view === "list"
-                ? "bg-blue-950 text-white"
-                : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-            }`}
-          >
-            List View
-          </button>
-          <button
-            onClick={() => setView("calendar")}
-            className={`px-4 py-2 rounded-md font-bold ${
-              view === "calendar"
-                ? "bg-blue-950 text-white"
-                : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-            }`}
-          >
-            Calendar View
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-6xl w-full mx-auto mt-6">
-        {loading ? (
-          <p className="text-center text-3xl animate-pulse">Loading Events...</p>
-        ) : events.length === 0 ? (
-          <p className="text-center text-2xl">No events found</p>
-        ) : view === "list" ? (
-          <>
-            <section className="grid gap-4 md:gap-6 lg:gap-8 items-start grid-cols-1 md:grid-cols-cards">
-              {visibleEvents.map((e) => {
-                const dateObj = new Date(e.start?.dateTime || e.start?.date);
-                const weekday = dateObj.toLocaleDateString("default", { weekday: "short" });
-                const month = dateObj.toLocaleDateString("default", { month: "short" });
-                const day = dateObj.getDate();
-
-                return (
-                  <article
-                    key={e.id}
-                    className="bg-white dark:bg-slate-800 shadow-xl shadow-slate-200 dark:shadow-slate-800 rounded-lg overflow-hidden"
-                  >
-                    {/* Header with date */}
-                    <div className="p-3 shadow bg-blue-950 text-indigo-50 uppercase grid place-items-center rounded-t-lg">
-                      <div className="text-sm">{`${weekday}, ${month}`}</div>
-                      <div className="text-3xl font-bold">{day}</div>
-                    </div>
-
-                    {/* Event details */}
-                    <div className="p-4 md:p-6 lg:p-8 grid gap-2">
-                      <h2 className="font-bold text-2xl">{e.name}</h2>
-                      {e.location && <p className="text-slate-400 text-sm">📍 {e.location}</p>}
-                      {e.description && <p className="text-slate-400">📝 {e.description}</p>}
-                      <p className="text-slate-400 text-sm">
-                        ⏰ {formatDate(e.start)} - {formatDate(e.end)}
-                      </p>
-                    </div>
-                  </article>
-                );
-              })}
-            </section>
-
-            {eventsToShow < upcomingEvents.length && (
-              <div className="text-center mt-4">
-                <button
-                  onClick={() => setEventsToShow(eventsToShow + 5)}
-                  className="px-6 py-2 bg-blue-950 text-white rounded-md font-bold"
-                >
-                  Load More
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          // Calendar view
-          <>
-            {/* Month navigation */}
-            <div className="flex justify-between mb-2 items-center">
+            <div className="inline-flex gap-1 mt-8 bg-white p-1 rounded-full shadow-sm">
               <button
-                onClick={() => setMonthOffset(monthOffset - 1)}
-                className="px-4 py-1 bg-blue-950 text-white rounded"
+                onClick={() => setView("list")}
+                className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition ${
+                  view === "list"
+                    ? "bg-blue-950 text-white shadow"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
               >
-                Prev
+                <HiOutlineListBullet size={18} /> List
               </button>
-              <h2 className="text-xl font-bold">
-                {calendarDate.toLocaleDateString("default", { month: "long", year: "numeric" })}
-              </h2>
               <button
-                onClick={() => setMonthOffset(monthOffset + 1)}
-                className="px-4 py-1 bg-blue-950 text-white rounded"
+                onClick={() => setView("calendar")}
+                className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition ${
+                  view === "calendar"
+                    ? "bg-blue-950 text-white shadow"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
               >
-                Next
+                <HiOutlineCalendarDays size={18} /> Calendar
               </button>
             </div>
+          </header>
+        </Reveal>
 
-            <section className="grid grid-cols-7 gap-1">
-              {weekDays.map((wd) => (
-                <div
-                  key={wd}
-                  className="font-bold text-center p-2 bg-blue-950 text-white rounded-t-md"
-                >
-                  {wd}
-                </div>
-              ))}
-
-              {/* Empty cells for first day */}
-              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                <div key={`empty-${i}`} className="border min-h-[80px] p-1 bg-white dark:bg-slate-800" />
-              ))}
-
-              {/* Days */}
-              {Array.from({ length: daysInMonth }, (_, i) => {
-                const day = i + 1;
-                const dayEvents = eventsByDate[day] || [];
-                return (
-                  <div
-                    key={day}
-                    className="border min-h-[80px] p-1 bg-white dark:bg-slate-800 flex flex-col gap-1"
-                  >
-                    <div className="font-bold">{day}</div>
-                    {dayEvents.map((e) => (
-                      <div
-                        key={e.id}
-                        className="text-xs md:text-sm p-1 bg-blue-950 text-white rounded"
+        {loading ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl h-64 animate-pulse shadow-sm"
+              />
+            ))}
+          </div>
+        ) : view === "list" ? (
+          upcomingEvents.length === 0 ? (
+            <p className="text-center text-slate-400 py-16">
+              No upcoming events right now — please check back soon.
+            </p>
+          ) : (
+            <>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {visibleEvents.map((e, i) => {
+                  const date = startOf(e);
+                  return (
+                    <Reveal key={e.id} delay={(i % 3) * 100}>
+                      <article
+                        onClick={() => setSelected(e)}
+                        className="bg-white rounded-2xl shadow-md overflow-hidden h-full flex flex-col cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                       >
-                        {e.name}
-                      </div>
-                    ))}
+                        {e.imageUrl ? (
+                          <div className="relative h-40 overflow-hidden">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={e.imageUrl}
+                              alt={e.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute top-3 left-3 bg-white rounded-lg px-3 py-1.5 text-center shadow-lg">
+                              <p className="text-[10px] uppercase text-blue-900 font-bold leading-none">
+                                {date.toLocaleDateString("default", {
+                                  month: "short",
+                                })}
+                              </p>
+                              <p className="text-xl font-bold text-blue-950 leading-tight">
+                                {date.getDate()}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-blue-950 text-white p-4 grid place-items-center">
+                            <p className="text-xs uppercase tracking-widest opacity-80">
+                              {date.toLocaleDateString("default", {
+                                weekday: "long",
+                              })}
+                            </p>
+                            <p className="text-4xl font-bold leading-tight">
+                              {date.getDate()}
+                            </p>
+                            <p className="text-xs uppercase tracking-widest opacity-80">
+                              {date.toLocaleDateString("default", {
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="p-5 flex-1 flex flex-col gap-2">
+                          <h3 className="font-bold text-lg text-blue-950 leading-snug">
+                            {e.name}
+                          </h3>
+                          <p className="text-sm text-slate-500">
+                            ⏰ {formatTime(e.start)}
+                            {e.end && e.end.dateTime
+                              ? ` – ${formatTime(e.end)}`
+                              : ""}
+                          </p>
+                          {e.location && (
+                            <p className="text-sm text-slate-500">
+                              📍 {e.location}
+                            </p>
+                          )}
+                          {e.description && (
+                            <p className="text-sm text-slate-600 line-clamp-3 mt-1">
+                              {e.description}
+                            </p>
+                          )}
+                        </div>
+                      </article>
+                    </Reveal>
+                  );
+                })}
+              </div>
+
+              {eventsToShow < upcomingEvents.length && (
+                <div className="text-center mt-10">
+                  <button
+                    onClick={() => setEventsToShow(eventsToShow + 6)}
+                    className="px-8 py-3 border-2 border-blue-950 text-blue-950 rounded-lg font-semibold hover:bg-blue-950 hover:text-white transition-all duration-300"
+                  >
+                    Load More Events
+                  </button>
+                </div>
+              )}
+            </>
+          )
+        ) : (
+          <Reveal>
+            <div className="bg-white rounded-2xl shadow-md p-4 md:p-6">
+              <div className="flex justify-between items-center mb-5">
+                <button
+                  onClick={() => setMonthOffset(monthOffset - 1)}
+                  className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-blue-950 font-semibold transition"
+                >
+                  ‹ Prev
+                </button>
+                <h3 className="text-lg md:text-xl font-bold text-blue-950">
+                  {calendarDate.toLocaleDateString("default", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </h3>
+                <button
+                  onClick={() => setMonthOffset(monthOffset + 1)}
+                  className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-blue-950 font-semibold transition"
+                >
+                  Next ›
+                </button>
+              </div>
+
+              <div className="grid grid-cols-7 gap-1 md:gap-2">
+                {weekDays.map((wd) => (
+                  <div
+                    key={wd}
+                    className="text-center text-[11px] md:text-sm font-bold text-blue-950 pb-2"
+                  >
+                    <span className="hidden sm:inline">{wd}</span>
+                    <span className="sm:hidden">{wd[0]}</span>
                   </div>
-                );
-              })}
-            </section>
-          </>
+                ))}
+
+                {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                  <div key={`empty-${i}`} className="min-h-[70px]" />
+                ))}
+
+                {Array.from({ length: daysInMonth }, (_, i) => {
+                  const day = i + 1;
+                  const dayEvents = eventsByDate[day] || [];
+                  return (
+                    <div
+                      key={day}
+                      className={`min-h-[70px] md:min-h-[90px] rounded-lg p-1 md:p-1.5 flex flex-col gap-1 border transition ${
+                        isToday(day)
+                          ? "border-yellow-400 bg-yellow-50"
+                          : "border-slate-100 bg-slate-50"
+                      }`}
+                    >
+                      <span
+                        className={`text-xs font-bold ${
+                          isToday(day) ? "text-yellow-700" : "text-slate-500"
+                        }`}
+                      >
+                        {day}
+                      </span>
+                      {dayEvents.slice(0, 2).map((e) => (
+                        <button
+                          key={e.id}
+                          onClick={() => setSelected(e)}
+                          title={e.name}
+                          className="text-[9px] md:text-[11px] leading-tight px-1 py-0.5 bg-blue-950 text-white rounded truncate text-left hover:bg-blue-800 transition"
+                        >
+                          {e.name}
+                        </button>
+                      ))}
+                      {dayEvents.length > 2 && (
+                        <span className="text-[9px] text-slate-400">
+                          +{dayEvents.length - 2} more
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </Reveal>
         )}
-      </main>
-    </div>
+      </div>
+
+      {/* Event detail modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-[2000] bg-black/70 flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto animate-[fadeInUp_0.3s_ease-out]"
+            onClick={(ev) => ev.stopPropagation()}
+          >
+            {selected.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={selected.imageUrl}
+                alt={selected.name}
+                className="w-full h-52 object-cover rounded-t-2xl"
+              />
+            )}
+            <div className="p-6">
+              <p className="text-xs uppercase tracking-widest text-blue-900 font-bold mb-2">
+                {startOf(selected).toLocaleDateString("default", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+              <h3 className="text-2xl font-bold text-blue-950 mb-3">
+                {selected.name}
+              </h3>
+              <p className="text-sm text-slate-500 mb-1">
+                ⏰ {formatTime(selected.start)}
+                {selected.end?.dateTime ? ` – ${formatTime(selected.end)}` : ""}
+              </p>
+              {selected.location && (
+                <p className="text-sm text-slate-500 mb-4">
+                  📍 {selected.location}
+                </p>
+              )}
+              {selected.description && (
+                <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                  {selected.description}
+                </p>
+              )}
+              <button
+                onClick={() => setSelected(null)}
+                className="mt-6 w-full bg-blue-950 text-white py-3 rounded-lg font-semibold hover:bg-blue-900 transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
