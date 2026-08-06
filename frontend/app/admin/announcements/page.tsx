@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Announcement } from "@/lib/types";
+import ImageUpload from "@/components/Admin/ImageUpload";
 import {
   PageHeader,
   Card,
@@ -24,6 +25,8 @@ const toLocalInput = (iso: string | null) => {
 const blankForm = {
   message: "",
   link_url: "",
+  media_id: null as string | null,
+  image_url: null as string | null,
   expires_at: "",
   active: true,
 };
@@ -70,6 +73,8 @@ export default function AdminAnnouncementsPage() {
     setForm({
       message: a.message,
       link_url: a.link_url ?? "",
+      media_id: a.media_id,
+      image_url: a.image_url,
       expires_at: toLocalInput(a.expires_at),
       active: a.active,
     });
@@ -86,6 +91,7 @@ export default function AdminAnnouncementsPage() {
     const payload = {
       message: form.message.trim(),
       link_url: form.link_url.trim() || null,
+      media_id: form.media_id,
       expires_at: form.expires_at
         ? new Date(form.expires_at).toISOString()
         : null,
@@ -195,6 +201,18 @@ export default function AdminAnnouncementsPage() {
             </Field>
           </div>
 
+          <ImageUpload
+            label="Image (optional)"
+            value={form.image_url}
+            onChange={(result) =>
+              setForm({
+                ...form,
+                media_id: result?.id ?? null,
+                image_url: result?.url ?? null,
+              })
+            }
+          />
+
           <label className="flex items-center gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
@@ -236,6 +254,15 @@ export default function AdminAnnouncementsPage() {
                 !a.active || isExpired(a) ? "opacity-60" : ""
               }`}
             >
+              {a.image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={a.image_url}
+                  alt=""
+                  className="w-14 h-14 rounded-lg object-cover shrink-0"
+                />
+              )}
+
               <div className="min-w-0 flex-1">
                 <p className="text-slate-800">{a.message}</p>
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">

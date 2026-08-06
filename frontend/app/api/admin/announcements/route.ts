@@ -27,10 +27,11 @@ export const POST = apiRoute(async (req: Request) => {
 
   const sql = getDb();
   const [row] = await sql`
-    insert into announcements (message, link_url, expires_at, active)
+    insert into announcements (message, link_url, media_id, expires_at, active)
     values (
       ${message},
       ${(body?.link_url ?? "").toString().trim() || null},
+      ${body?.media_id ?? null},
       ${expiresAt},
       ${body?.active !== false}
     )

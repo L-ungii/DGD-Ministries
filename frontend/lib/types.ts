@@ -25,6 +25,8 @@ export type Announcement = {
   id: string;
   message: string;
   link_url: string | null;
+  media_id: string | null;
+  image_url: string | null;
   active: boolean;
   expires_at: string | null;
   created_at: string;

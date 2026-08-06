@@ -41,7 +41,16 @@ export default function AnnouncementBar() {
 
   const body = (
     <span className="flex items-center gap-2 min-w-0">
-      <HiOutlineMegaphone size={18} className="shrink-0" />
+      {current.image_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={current.image_url}
+          alt=""
+          className="w-6 h-6 rounded-full object-cover shrink-0"
+        />
+      ) : (
+        <HiOutlineMegaphone size={18} className="shrink-0" />
+      )}
       <span className="truncate">{current.message}</span>
       {current.link_url && (
         <span className="underline shrink-0 hidden sm:inline">Read more</span>

@@ -61,10 +61,18 @@ create table if not exists announcements (
   id         uuid primary key default gen_random_uuid(),
   message    text not null,
   link_url   text,
+  media_id   uuid references media(id) on delete set null,
+  image_url  text generated always as ('/api/media/' || media_id::text) stored,
   active     boolean not null default true,
   expires_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+-- Upgrades an already-provisioned database that predates the optional
+-- announcement image — CREATE TABLE IF NOT EXISTS above is a no-op once
+-- the table exists, so these add the new columns explicitly.
+alter table announcements add column if not exists media_id uuid references media(id) on delete set null;
+alter table announcements add column if not exists image_url text generated always as ('/api/media/' || media_id::text) stored;
 
 -- ---------- PRAYER REQUESTS ----------
 create table if not exists prayer_requests (
