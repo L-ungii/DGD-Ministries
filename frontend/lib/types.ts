@@ -25,10 +25,16 @@ export type Announcement = {
   id: string;
   message: string;
   link_url: string | null;
-  media_id: string | null;
-  image_url: string | null;
   active: boolean;
   expires_at: string | null;
+  created_at: string;
+};
+
+export type Poster = {
+  id: string;
+  media_id: string;
+  image_url: string;
+  caption: string | null;
   created_at: string;
 };
 

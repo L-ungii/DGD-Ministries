@@ -61,18 +61,26 @@ create table if not exists announcements (
   id         uuid primary key default gen_random_uuid(),
   message    text not null,
   link_url   text,
-  media_id   uuid references media(id) on delete set null,
-  image_url  text generated always as ('/api/media/' || media_id::text) stored,
   active     boolean not null default true,
   expires_at timestamptz,
   created_at timestamptz not null default now()
 );
 
--- Upgrades an already-provisioned database that predates the optional
--- announcement image — CREATE TABLE IF NOT EXISTS above is a no-op once
--- the table exists, so these add the new columns explicitly.
-alter table announcements add column if not exists media_id uuid references media(id) on delete set null;
-alter table announcements add column if not exists image_url text generated always as ('/api/media/' || media_id::text) stored;
+-- Reverts an announcement image experiment — image_url must go first
+-- since it's a generated column derived from media_id.
+alter table announcements drop column if exists image_url;
+alter table announcements drop column if exists media_id;
+
+-- ---------- POSTER ----------
+-- A single "poster of the day" the admin swaps out — never more than one
+-- row. Uploading a new poster deletes the old row (and its media) first.
+create table if not exists poster (
+  id         uuid primary key default gen_random_uuid(),
+  media_id   uuid not null references media(id) on delete cascade,
+  image_url  text generated always as ('/api/media/' || media_id::text) stored,
+  caption    text,
+  created_at timestamptz not null default now()
+);
 
 -- ---------- PRAYER REQUESTS ----------
 create table if not exists prayer_requests (

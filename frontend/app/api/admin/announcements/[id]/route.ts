@@ -1,6 +1,5 @@
 import { getDb } from "@/lib/db";
 import { requireAdmin, apiRoute, ValidationError } from "@/lib/auth";
-import { deleteImage } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +20,6 @@ export const PATCH = apiRoute(async (req: Request, { params }: Params) => {
     updates.message = message;
   }
   if ("link_url" in body) updates.link_url = body.link_url?.toString().trim() || null;
-  if ("media_id" in body) updates.media_id = body.media_id || null;
   if ("active" in body) updates.active = Boolean(body.active);
   if ("expires_at" in body) {
     if (body.expires_at) {
@@ -47,14 +45,6 @@ export const DELETE = apiRoute(async (_req: Request, { params }: Params) => {
   await requireAdmin();
   const { id } = await params;
   const sql = getDb();
-
-  const [row] = await sql`delete from announcements where id = ${id} returning media_id`;
-
-  if (row?.media_id) {
-    await deleteImage(row.media_id).catch((err) =>
-      console.error("Failed to delete media row:", err)
-    );
-  }
-
+  await sql`delete from announcements where id = ${id}`;
   return Response.json({ ok: true });
 });

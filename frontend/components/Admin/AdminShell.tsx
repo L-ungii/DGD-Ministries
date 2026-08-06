@@ -8,6 +8,7 @@ import {
   HiOutlineSquares2X2,
   HiOutlineCalendarDays,
   HiOutlinePhoto,
+  HiOutlineNewspaper,
   HiOutlineMegaphone,
   HiOutlineHeart,
   HiOutlineArrowRightOnRectangle,
@@ -20,6 +21,7 @@ const links = [
   { href: "/admin", label: "Dashboard", Icon: HiOutlineSquares2X2 },
   { href: "/admin/events", label: "Events", Icon: HiOutlineCalendarDays },
   { href: "/admin/gallery", label: "Gallery", Icon: HiOutlinePhoto },
+  { href: "/admin/poster", label: "Poster", Icon: HiOutlineNewspaper },
   {
     href: "/admin/announcements",
     label: "Announcements",
