@@ -23,8 +23,8 @@ export const POST = apiRoute(async (req: Request) => {
 
   const old = await sql`delete from poster returning media_id`;
   const [row] = await sql`
-    insert into poster (media_id, caption)
-    values (${mediaId}, ${(body?.caption ?? "").toString().trim() || null})
+    insert into poster (media_id, title)
+    values (${mediaId}, ${(body?.title ?? "").toString().trim() || null})
     returning *
   `;
 

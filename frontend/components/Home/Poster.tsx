@@ -21,17 +21,17 @@ export default async function Poster() {
     <section className="py-16 px-4 bg-white">
       <div className="max-w-3xl mx-auto">
         <Reveal>
+          {poster.title && (
+            <h2 className="text-2xl md:text-4xl font-bold text-blue-950 text-center mb-6">
+              {poster.title}
+            </h2>
+          )}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={poster.image_url}
-            alt={poster.caption ?? "Poster"}
+            alt={poster.title ?? "Poster"}
             className="w-full rounded-2xl shadow-xl object-cover"
           />
-          {poster.caption && (
-            <p className="text-center text-slate-600 mt-5 text-lg">
-              {poster.caption}
-            </p>
-          )}
         </Reveal>
       </div>
     </section>

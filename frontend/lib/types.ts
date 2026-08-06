@@ -34,7 +34,7 @@ export type Poster = {
   id: string;
   media_id: string;
   image_url: string;
-  caption: string | null;
+  title: string | null;
   created_at: string;
 };
 

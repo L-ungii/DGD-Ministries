@@ -23,7 +23,7 @@ export default function AdminPosterPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
-  const [caption, setCaption] = useState("");
+  const [title, setTitle] = useState("");
   const [pendingImage, setPendingImage] = useState<{
     id: string;
     url: string;
@@ -37,7 +37,7 @@ export default function AdminPosterPage() {
       const res = await fetch("/api/admin/poster");
       const data = await parseJson(res);
       setPoster(data);
-      setCaption(data?.caption ?? "");
+      setTitle(data?.title ?? "");
       setPendingImage(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load the poster.");
@@ -67,7 +67,7 @@ export default function AdminPosterPage() {
         await fetch("/api/admin/poster", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ media_id: displayMediaId, caption }),
+          body: JSON.stringify({ media_id: displayMediaId, title }),
         })
       );
       setSuccess("Poster saved — it's live on the homepage now.");
@@ -117,12 +117,12 @@ export default function AdminPosterPage() {
               }}
             />
 
-            <Field label="Caption (optional)" hint="Shown under the poster on the homepage.">
+            <Field label="Title (optional)" hint="Shown as a heading above the poster on the homepage.">
               <input
                 className={inputClass}
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                placeholder="Join us this Sunday at 10am"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Join Us This Sunday"
               />
             </Field>
 

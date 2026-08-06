@@ -78,9 +78,22 @@ create table if not exists poster (
   id         uuid primary key default gen_random_uuid(),
   media_id   uuid not null references media(id) on delete cascade,
   image_url  text generated always as ('/api/media/' || media_id::text) stored,
-  caption    text,
+  title      text,
   created_at timestamptz not null default now()
 );
+
+-- Renames poster.caption to poster.title on a database provisioned before
+-- this change. Plain RENAME COLUMN has no IF EXISTS form, so this checks
+-- information_schema first to stay safe to run more than once.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'poster' and column_name = 'caption'
+  ) then
+    alter table poster rename column caption to title;
+  end if;
+end $$;
 
 -- ---------- PRAYER REQUESTS ----------
 create table if not exists prayer_requests (
